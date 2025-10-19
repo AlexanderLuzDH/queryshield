@@ -12,6 +12,16 @@
 upload_to_pypi.py
 publish_to_pypi.sh
 
+# Internal/Development docs
+AGENTS.md
+EXECUTION_ROADMAP.md
+LAUNCH_SUMMARY.md
+LAUNCH_v0.3.0.md
+PYPI_PUBLICATION_GUIDE.md
+TEST_REPORT_v030.md
+V030_LAUNCH_REPORT.md
+*.docx
+
 # Python
 __pycache__/
 *.py[cod]

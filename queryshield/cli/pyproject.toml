@@ -1,0 +1,23 @@
+[build-system]
+requires = ["hatchling>=1.18.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "queryshield"
+version = "0.3.0"
+description = "CLI for QueryShield"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{ name = "QueryShield", email = "dev@queryshield.io" }]
+dependencies = [
+  "typer>=0.12",
+  "rich>=13.0",
+  "httpx>=0.24.0",
+  # The probe should be installed separately in editable mode for monorepo usage
+]
+
+[project.scripts]
+queryshield = "queryshield_cli.main:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["queryshield_cli"]

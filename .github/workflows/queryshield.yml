@@ -1,0 +1,198 @@
+name: QueryShield
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  failing:
+    name: Failing (N+1, budgets max_queries=3)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: appdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres" --health-interval=10s --health-timeout=5s --health-retries=5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e queryshield/probe -e queryshield/cli Django PyYAML typer rich psycopg2-binary
+      - name: Unit tests (probe)
+        run: |
+          python -m unittest discover -v queryshield/probe/tests
+      - name: Run analyze (Postgres, N+1)
+        working-directory: queryshield/sample-django-app
+        env:
+          DJANGO_SETTINGS_MODULE: sample_django_app.settings
+          DB_ENGINE: django.db.backends.postgresql
+          DB_NAME: appdb
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          DB_HOST: 127.0.0.1
+          DB_PORT: "5432"
+        run: |
+          python manage.py migrate
+          queryshield analyze --runner=django --output .queryshield/queryshield_report.json
+      - name: Budget check (expected fail)
+        working-directory: queryshield/sample-django-app
+        run: |
+          echo "defaults:\n  max_queries: 100\n\ntests:\n  'app.tests.test_nplus1.NPlusOneTest.test_books_view_nplus1':\n    max_queries: 3\n" > ../.ci-budgets-fail.yml
+          queryshield budget-check --budgets ../.ci-budgets-fail.yml --report .queryshield/queryshield_report.json --json-out
+      - name: Validate report schema
+        if: always()
+        run: |
+          python -m pip install jsonschema
+          python - <<'PY'
+import json, sys
+from jsonschema import validate
+schema = json.load(open('schema/queryshield_report_v1.json','r'))
+data = json.load(open('queryshield/sample-django-app/.queryshield/queryshield_report.json','r'))
+validate(data, schema)
+print('Schema OK')
+PY
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: queryshield-report-failing
+          path: queryshield/sample-django-app/.queryshield/queryshield_report.json
+      - name: Upload DDL suggestions
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ddl-suggestions.txt
+          path: queryshield/sample-django-app/.queryshield/ddl-suggestions.txt
+      - name: Print DDL suggestions (first 10 lines)
+        if: always()
+        working-directory: queryshield/sample-django-app
+        run: |
+          head -n 10 .queryshield/ddl-suggestions.txt || true
+
+  passing:
+    name: Passing (optimized view, budgets pass)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: appdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres" --health-interval=10s --health-timeout=5s --health-retries=5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e queryshield/probe -e queryshield/cli Django PyYAML typer rich psycopg2-binary
+      - name: Unit tests (probe)
+        run: |
+          python -m unittest discover -v queryshield/probe/tests
+      - name: Run analyze (Postgres, optimized)
+        working-directory: queryshield/sample-django-app
+        env:
+          DJANGO_SETTINGS_MODULE: sample_django_app.settings
+          DB_ENGINE: django.db.backends.postgresql
+          DB_NAME: appdb
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          DB_HOST: 127.0.0.1
+          DB_PORT: "5432"
+        run: |
+          python manage.py migrate
+          queryshield analyze --runner=django --output .queryshield/queryshield_report.json
+      - name: Budget check (pass)
+        working-directory: queryshield/sample-django-app
+        run: |
+          echo "defaults:\n  max_queries: 200\n\ntests:\n  'app.tests.test_nplus1.NPlusOneTest.test_books_view_optimized':\n    max_queries: 3\n" > ../.ci-budgets-pass.yml
+          queryshield budget-check --budgets ../.ci-budgets-pass.yml --report .queryshield/queryshield_report.json --json-out
+      - name: Validate report schema
+        run: |
+          python -m pip install jsonschema
+          python - <<'PY'
+import json, sys
+from jsonschema import validate
+schema = json.load(open('schema/queryshield_report_v1.json','r'))
+data = json.load(open('queryshield/sample-django-app/.queryshield/queryshield_report.json','r'))
+validate(data, schema)
+print('Schema OK')
+PY
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: queryshield-report-passing
+          path: queryshield/sample-django-app/.queryshield/queryshield_report.json
+      - name: Upload DDL suggestions
+        uses: actions/upload-artifact@v4
+        with:
+          name: ddl-suggestions.txt
+          path: queryshield/sample-django-app/.queryshield/ddl-suggestions.txt
+      - name: Print DDL suggestions (first 10 lines)
+        working-directory: queryshield/sample-django-app
+        run: |
+          head -n 10 .queryshield/ddl-suggestions.txt || true
+      - name: Assert EXPLAIN overhead ≤ 30%
+        working-directory: queryshield/sample-django-app
+        run: |
+          python - <<'PY'
+import json
+data = json.load(open('.queryshield/queryshield_report.json','r'))
+run = data.get('run',{})
+dur = float(run.get('duration_ms') or 0.0)
+exp = float(run.get('explain_runtime_ms') or 0.0)
+if dur > 0 and exp/dur > 0.30:
+    raise SystemExit('Overhead too high: %.1f%%' % (100*exp/dur))
+print('Overhead OK: %.1f%%' % (100*exp/dur if dur else 0.0))
+PY
+      - name: Commit artifacts to repo (opt-in)
+        env:
+          CI: true
+          PUBLISH_EVIDENCE: ${{ secrets.PUBLISH_EVIDENCE }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: |
+          python -m pip install requests
+          python .github/scripts/commit_artifacts.py
+
+  windows-smoke:
+    name: Windows smoke (SQLite)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e queryshield/probe -e queryshield/cli Django PyYAML typer rich
+      - name: Run analyze (SQLite)
+        working-directory: queryshield/sample-django-app
+        env:
+          DJANGO_SETTINGS_MODULE: sample_django_app.settings
+        run: |
+          python manage.py migrate
+          queryshield analyze --runner=django --output .queryshield/queryshield_report.json
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: queryshield-report-windows
+          path: queryshield/sample-django-app/.queryshield/queryshield_report.json

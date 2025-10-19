@@ -1,0 +1,44 @@
+[build-system]
+requires = ["hatchling>=1.18.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "queryshield-saas"
+version = "0.2.0"
+description = "QueryShield SaaS Backend API"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{ name = "QueryShield", email = "dev@queryshield.io" }]
+dependencies = [
+  "fastapi>=0.100.0",
+  "uvicorn[standard]>=0.23.0",
+  "sqlalchemy>=2.0.0",
+  "alembic>=1.12.0",
+  "psycopg2-binary>=2.9.0",
+  "python-dotenv>=1.0.0",
+  "pydantic>=2.0.0",
+  "pydantic-settings>=2.0.0",
+  "python-multipart>=0.0.6",
+  "PyJWT>=2.8.0",
+  "passlib[bcrypt]>=1.7.4",
+  "email-validator>=2.0.0",
+  "httpx>=0.24.0",
+  "redis>=5.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.4.0",
+  "pytest-asyncio>=0.21.0",
+  "pytest-cov>=4.1.0",
+  "black>=23.0.0",
+  "ruff>=0.1.0",
+  "mypy>=1.5.0",
+]
+
+[project.urls]
+Homepage = "https://queryshield.io"
+Repository = "https://github.com/queryshield/queryshield-saas"
+
+[tool.hatch.build.targets.wheel]
+packages = ["queryshield_saas"]

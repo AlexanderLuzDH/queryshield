@@ -1,0 +1,80 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install build tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install build wheel hatchling
+      - name: Build probe (sdist+wheel)
+        working-directory: queryshield/probe
+        run: |
+          python -m build --sdist --wheel
+      - name: Build CLI (sdist+wheel)
+        working-directory: queryshield/cli
+        run: |
+          python -m build --sdist --wheel
+      - name: Upload Python dists
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-dists
+          path: |
+            queryshield/probe/dist/*
+            queryshield/cli/dist/*
+
+  build-plugin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gradle/gradle-build-action@v2
+      - name: Build plugin
+        working-directory: queryshield/ide-plugin
+        run: |
+          ./gradlew buildPlugin --no-daemon
+      - name: Compute SHA256
+        id: sha
+        run: |
+          f=$(ls queryshield/ide-plugin/build/distributions/*.zip | head -n1)
+          echo "file=$f" >> $GITHUB_OUTPUT
+          echo "sha256=$(sha256sum "$f" | awk '{print $1}')" >> $GITHUB_OUTPUT
+      - name: Upload plugin zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-zip
+          path: ${{ steps.sha.outputs.file }}
+
+  publish-release:
+    needs: [build-release, build-plugin]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/python-dists/*
+            artifacts/plugin-zip/*
+            schema/queryshield_report_v1.json
+            queryshield/sample-django-app/.queryshield/before.json
+            queryshield/sample-django-app/.queryshield/after.json
+            queryshield/sample-django-app/.queryshield/ddl-suggestions.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

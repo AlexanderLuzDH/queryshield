@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QueryShield Report v1",
+  "type": "object",
+  "required": ["version", "project_root", "timestamp", "framework", "db", "run", "tests"],
+  "properties": {
+    "version": {"type": "string", "enum": ["1"]},
+    "project_root": {"type": "string"},
+    "timestamp": {"type": "string"},
+    "framework": {"type": "object"},
+    "db": {"type": "object"},
+    "run": {"type": "object"},
+    "tests": {"type": "array"}
+  },
+  "additionalProperties": true
+}
+

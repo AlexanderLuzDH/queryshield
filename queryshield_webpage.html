@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QueryShield - Database Query Performance Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: white;
+            padding: 40px 20px;
+            border-radius: 10px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .tagline {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin: 5px;
+        }
+
+        .section {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 2em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            color: #764ba2;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #d63384;
+        }
+
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .feature-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin: 10px 5px;
+            transition: transform 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #667eea;
+        }
+
+        .step {
+            background: #f9f9f9;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+        }
+
+        .step strong {
+            color: #667eea;
+        }
+
+        .example {
+            background: #f0f7ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        footer {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            color: #666;
+            margin-top: 40px;
+        }
+
+        .icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>🛡️ QueryShield</h1>
+            <p class="tagline">Automated Database Query Performance Analysis</p>
+            <div>
+                <span class="badge">v0.3.0</span>
+                <span class="badge">Multi-Framework</span>
+                <span class="badge">Open Source</span>
+                <span class="badge">100% Free</span>
+            </div>
+        </header>
+
+        <!-- What is QueryShield -->
+        <section class="section">
+            <h2>What is QueryShield?</h2>
+            <p>QueryShield automatically analyzes your database queries to detect performance issues <strong>before they hit production</strong>.</p>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🔍</div>
+                    <h4>N+1 Detection</h4>
+                    <p>Find inefficient query patterns automatically</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">⚡</div>
+                    <h4>Missing Indexes</h4>
+                    <p>Identify unindexed columns slowing you down</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">💰</div>
+                    <h4>Cost Analysis</h4>
+                    <p>Estimate database infrastructure costs</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🤖</div>
+                    <h4>AI Suggestions</h4>
+                    <p>Get specific fixes with code examples</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Installation -->
+        <section class="section">
+            <h2>Installation</h2>
+            
+            <h3>1️⃣ Install the CLI</h3>
+            <div class="code-block">pip install queryshield</div>
+
+            <h3>2️⃣ Choose Your Framework</h3>
+            
+            <h4>For Django:</h4>
+            <div class="code-block">pip install queryshield-probe</div>
+
+            <h4>For FastAPI/SQLAlchemy:</h4>
+            <div class="code-block">pip install queryshield-sqlalchemy</div>
+
+            <h4>For Production Monitoring:</h4>
+            <div class="code-block">pip install queryshield-monitoring</div>
+        </section>
+
+        <!-- Quick Start -->
+        <section class="section">
+            <h2>Quick Start Guide</h2>
+
+            <h3>Django Users</h3>
+            <div class="step">
+                <strong>Step 1:</strong> Add to your Django settings:
+                <div class="code-block">INSTALLED_APPS = [
+    'queryshield_probe',
+    # ... your other apps
+]</div>
+            </div>
+
+            <div class="step">
+                <strong>Step 2:</strong> Run your tests:
+                <div class="code-block">python manage.py test</div>
+            </div>
+
+            <div class="step">
+                <strong>Step 3:</strong> Check the report:
+                <div class="code-block">cat queryshield_report.json</div>
+            </div>
+
+            <h3>FastAPI Users</h3>
+            <div class="step">
+                <strong>Step 1:</strong> Add to your app:
+                <div class="code-block">from queryshield_sqlalchemy import QueryShieldProbe
+from sqlalchemy import create_engine
+
+engine = create_engine("postgresql://...")
+probe = QueryShieldProbe(engine)
+
+# Use in tests...
+report = probe.finalize()</div>
+            </div>
+
+            <h3>Production Monitoring</h3>
+            <div class="step">
+                <strong>Step 1:</strong> Add middleware:
+                <div class="code-block">from queryshield_monitoring import QueryShieldMiddleware
+
+app.add_middleware(
+    QueryShieldMiddleware,
+    sample_rate=0.01,  # 1% of queries
+    slow_query_threshold_ms=500
+)</div>
+            </div>
+        </section>
+
+        <!-- What It Detects -->
+        <section class="section">
+            <h2>What QueryShield Detects</h2>
+            
+            <div class="example">
+                <strong>❌ N+1 Queries:</strong> Loop that runs 1 query per item instead of batching
+            </div>
+
+            <div class="example">
+                <strong>❌ Missing Indexes:</strong> Columns used in WHERE clauses without indexes
+            </div>
+
+            <div class="example">
+                <strong>❌ Slow Queries:</strong> SELECT * from huge tables taking 500ms+
+            </div>
+
+            <div class="example">
+                <strong>❌ Sequential Scans:</strong> Table scans on large tables instead of index lookups
+            </div>
+
+            <div class="example">
+                <strong>❌ Complex JOINs:</strong> Queries joining 3+ tables inefficiently
+            </div>
+
+            <div class="example">
+                <strong>✅ AI Suggestions:</strong> Each issue includes root cause and specific fix
+            </div>
+        </section>
+
+        <!-- Example Report -->
+        <section class="section">
+            <h2>Sample Report</h2>
+            <p>QueryShield generates detailed reports showing:</p>
+            <div class="code-block">{
+  "total_queries": 523,
+  "problems": [
+    {
+      "type": "N+1",
+      "sql": "SELECT * FROM books WHERE author_id = ?",
+      "count": 15,
+      "root_cause": "Loop accessing foreign key without prefetch",
+      "suggestion": "Use select_related() or prefetch_related()",
+      "confidence": 95,
+      "estimated_improvement": "15x faster"
+    }
+  ],
+  "estimated_monthly_cost": 1250
+}</div>
+        </section>
+
+        <!-- Support -->
+        <section class="section">
+            <h2>Need Help?</h2>
+            <p>QueryShield is <strong>100% open source and free</strong>.</p>
+            <p style="margin-top: 20px;">
+                <a href="https://github.com/busleyden/queryshield" class="btn">GitHub Repository</a>
+                <a href="https://pypi.org/project/queryshield/" class="btn">PyPI Package</a>
+            </p>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p>&copy; 2025 QueryShield. Open source and free forever.</p>
+        </footer>
+    </div>
+</body>
+</html>

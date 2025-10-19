@@ -1,0 +1,47 @@
+name: 'QueryShield'
+description: 'Analyze database query performance and budgets in your Django tests'
+author: 'QueryShield'
+
+inputs:
+  budgets-file:
+    description: 'Path to queryshield.yml budgets config'
+    required: false
+    default: 'queryshield.yml'
+  
+  compare-to:
+    description: 'Git ref to compare against (e.g., main, develop)'
+    required: false
+    default: 'main'
+  
+  runner:
+    description: 'Test runner to use (django or pytest)'
+    required: false
+    default: 'django'
+  
+  explain:
+    description: 'Enable EXPLAIN analysis on PostgreSQL'
+    required: false
+    default: 'true'
+  
+  api-key:
+    description: 'QueryShield API key for uploading reports to dashboard'
+    required: false
+  
+  fail-on-violations:
+    description: 'Fail the build if budget violations are detected'
+    required: false
+    default: 'true'
+
+outputs:
+  report-url:
+    description: 'URL to the QueryShield report on the dashboard'
+  
+  violations-count:
+    description: 'Number of budget violations found'
+  
+  queries-delta:
+    description: 'Change in query count compared to baseline'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'

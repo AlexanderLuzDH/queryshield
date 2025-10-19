@@ -1,0 +1,91 @@
+# QueryShield Configuration File
+# Copy this to queryshield.yml and customize for your project
+
+# ============================================
+# TEST ANALYSIS SETTINGS
+# ============================================
+tests:
+  # Test runner to use
+  runner: django  # or pytest, fastapi
+
+  # Enable EXPLAIN plan analysis (PostgreSQL, MySQL)
+  explain: true
+  explain_timeout_ms: 500
+
+  # N+1 detection threshold
+  nplus1_threshold: 5
+
+  # Output format
+  output_format: table  # or json
+
+# ============================================
+# QUERY BUDGETS
+# ============================================
+budgets:
+  - test_name: "*"  # Applies to all tests
+    max_queries: 100
+    max_query_time_ms: 50000
+
+  - test_name: "tests/test_api.py::test_list_users"
+    max_queries: 50
+    max_query_time_ms: 10000
+
+# ============================================
+# PRODUCTION MONITORING (NEW)
+# ============================================
+production:
+  # Enable/disable production monitoring
+  enabled: true
+
+  # SaaS API configuration
+  api_url: https://api.queryshield.app
+  
+  # API key for SaaS backend
+  # Recommended: Set via QUERYSHIELD_API_KEY environment variable
+  # api_key: sk_live_xxx
+  
+  # Organization ID for SaaS
+  # Recommended: Set via QUERYSHIELD_ORG_ID environment variable
+  # org_id: org_123
+  
+  # Environment name (production, staging, development)
+  environment: production
+  
+  # Query sampling rate
+  # 0.01 = 1% of queries (recommended for production)
+  # 0.001 = 0.1% (for high-traffic apps)
+  # 1.0 = 100% (for testing only)
+  sample_rate: 0.01
+  
+  # Slow query threshold (milliseconds)
+  # Queries slower than this are flagged
+  slow_query_threshold_ms: 500
+  
+  # Batch upload settings
+  batch_size: 100              # Upload when batch reaches this size
+  batch_timeout_seconds: 30    # Or after this many seconds
+
+# ============================================
+# COST ANALYSIS SETTINGS
+# ============================================
+cost_analysis:
+  # Cloud provider for cost calculation
+  provider: aws_rds_postgres  # or aws_rds_mysql, gcp_cloudsql, digitalocean
+  
+  # Estimated queries per month (for annual cost projection)
+  queries_per_month: 100000000  # 100M queries/month
+
+# ============================================
+# OUTPUT & REPORTING
+# ============================================
+output:
+  # Report file location
+  report_file: ".queryshield/report.json"
+  
+  # Baseline file for comparison
+  baseline_file: ".queryshield/baseline.json"
+  
+  # Exclude certain test paths
+  exclude_patterns:
+    - "**/migrations/*"
+    - "**/fixtures/*"

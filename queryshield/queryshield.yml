@@ -1,0 +1,17 @@
+defaults:
+  max_queries: 50
+  max_total_db_time_ms: 5000
+  forbid:
+    - type: "N+1"
+    # - type: "MISSING_INDEX"   # example: forbid missing index
+  # Demonstrate ignore rules: ignore a specific explain id pattern
+  # tests can add: ignore: ["explain:select_star_large:*"]
+
+tests:
+  "app.tests.test_nplus1.NPlusOneTest.test_books_view_nplus1":
+    max_queries: 50
+  "app.tests.test_nplus1.NPlusOneTest.test_books_view_optimized":
+    max_queries: 3
+    # ignore:
+    #   - "explain:select_star_large:*"   # ignore by id pattern
+    #   - "SORT_WITHOUT_INDEX"            # ignore whole problem type

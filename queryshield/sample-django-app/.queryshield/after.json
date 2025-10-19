@@ -1,0 +1,5 @@
+{
+  "version": "1",
+  "note": "Placeholder. After applying select_related in books_view_opt, run 'queryshield analyze' to regenerate.",
+  "tests": []
+}

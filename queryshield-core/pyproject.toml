@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling>=1.18.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "queryshield-core"
+version = "0.2.0"
+description = "QueryShield core analysis library - shared logic for all probe packages"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{ name = "QueryShield", email = "dev@queryshield.io" }]
+dependencies = [
+  "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.4.0",
+  "pytest-cov>=4.1.0",
+]
+
+[project.urls]
+Homepage = "https://queryshield.io"
+Repository = "https://github.com/queryshield/queryshield"
+
+[tool.hatch.build.targets.wheel]
+packages = ["queryshield_core"]
